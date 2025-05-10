@@ -26,6 +26,7 @@ build:
 	@echo "Building the design...";\
 	${XSCT} ./tcl/os_build.tcl;\
 	./make_os.sh;\
+	sleep 5;\
 	${XSCT} ./tcl/bootloader_build.tcl;\
 
 run: $(XSA_FILE)
