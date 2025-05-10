@@ -1,1 +1,1 @@
-Empty application. Add your own sources.
+cottonosのブートローダ部分

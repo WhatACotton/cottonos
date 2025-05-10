@@ -1,1 +1,3 @@
-Empty application. Add your own sources.
+cottonosのOS部分
+
+現在はとりあえずhello worldを出力させるべく実装中。
