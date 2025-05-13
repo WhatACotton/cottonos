@@ -1,3 +1,1 @@
-cottonosのOS部分
-
-現在はとりあえずhello worldを出力させるべく実装中。
+cottonosのブートローダ部分

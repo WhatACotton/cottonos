@@ -14,25 +14,15 @@ $(XSA_FILE): $(DESIGN_TCL)
 
 setup: $(XSA_FILE)
 	@echo "Setting up the environment...";\
-	${XSCT} ./tcl/bootloader.tcl;\
-	cp -r ./vitis/bootloader/src ./workspace/bootloader/cottonos_bootloader;\
 	${XSCT} ./tcl/os.tcl;\
-	cp -r ./vitis/os/src ./workspace/os/cottonos_os;\
-
+	cp -r ./vitis/os/src ./workspace/os/cottonos_os;
 
 all: $(XSA_FILE)
 
 build:
 	@echo "Building the design...";\
-	${XSCT} ./tcl/os_build.tcl;\
-	./make_os.sh;\
-	sleep 5;\
-	${XSCT} ./tcl/bootloader_build.tcl;\
+	${XSCT} ./tcl/os_build.tcl;
 
-build_bootloader:
-	@echo "Building the bootloader...";\
-	${XSCT} ./tcl/bootloader_build.tcl;\
-	
 run: $(XSA_FILE)
 	@echo "Running the design...";\
 	${XSCT} ./tcl/run.tcl

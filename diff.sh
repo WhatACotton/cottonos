@@ -5,7 +5,6 @@ COMMIT_MSG="$1"
 
 # Define directories to compare
 DIRS=(
-    "vitis/bootloader/src:workspace/bootloader/cottonos_bootloader/src"
     "vitis/os/src:workspace/os/cottonos_os/src"
 )
 
