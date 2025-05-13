@@ -1,6 +1,6 @@
-#include <stdio.h>
+#include "xil_printf.h"
 int main()
 {
-    printf("Hello, World!\n");
+    xil_printf("Hello, World!\n");
     return 0;
 }

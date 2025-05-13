@@ -84,24 +84,23 @@ static int co_elf_load_program(struct elf_header *header)
     if (phdr->type != 1) /* ロード可能なセグメントか？ */
       continue;
 
-    co_memcpy((char *)phdr->physical_addr, (char *)header + phdr->offset,
-              phdr->file_size);
-    co_memset((char *)phdr->physical_addr + phdr->file_size, 0,
-              phdr->memory_size - phdr->file_size);
+    memcpy((char *)phdr->physical_addr, (char *)header + phdr->offset,
+           phdr->file_size);
+    memset((char *)phdr->physical_addr + phdr->file_size, 0,
+           phdr->memory_size - phdr->file_size);
   }
+  printf("co_elf_load_program entrypoint: %p\n", (char *)header + header->entry_point);
 
   return 0;
 }
-
 char *co_elf_load(char *buf)
 {
-  xil_printf("co_elf_load\r\n");
   struct elf_header *header = (struct elf_header *)buf;
 
-  if (co_elf_check(header) < 0) /* ELFヘッダのチェック */
+  if (co_elf_check(header) < 0)
     return NULL;
 
-  if (co_elf_load_program(header) < 0) /* セグメント単位でのロード */
+  if (co_elf_load_program(header) < 0)
     return NULL;
 
   return (char *)header->entry_point;

@@ -1,0 +1,13 @@
+{
+  "files.associations": {
+    "*.elf": "plist",
+    "*.scr": "mapfile",
+    "*.spr": "json",
+    "*.ld": "mapfile",
+    "program.h": "c",
+    "cottonos_os.h": "c",
+    "lib.h": "c",
+    "ff.h": "c",
+    "xparameters.h": "c"
+  }
+}

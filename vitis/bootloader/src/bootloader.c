@@ -4,37 +4,58 @@
 #include "xparameters.h"
 #include "lib.h"
 #include "ff.h"
-// #include "program.h"
 #include "cottonos_os.h"
 #include "elf.h"
-#include <stdlib.h> // mallocとfreeを使用するために必要
+#include <stdlib.h> // malloc and free
+#include <string.h>
 
 #define BUFFER_SIZE 1024
 
-static int dump(char *buf, long size)
+void copy_last_command(char *buf, char *last_command)
+{
+    memset(last_command, 0, sizeof(last_command));
+    strcpy(last_command, buf);
+}
+
+void buf_rst(char *buf, size_t size)
+{
+    memset(buf, 0, size);
+}
+void print_banner()
+{
+    printf("\r\n             __    __                                     \r\n");
+    printf("            /\\ \\__/\\ \\__                                  \r\n");
+    printf("  ___    ___\\ \\ ,_\\ \\ ,_\\   ___     ___     ___     ____  \r\n");
+    printf(" /'___\\ / __`\\ \\ \\/\\ \\ \\/  / __`\\ /' _ `\\  / __`\\  /',__\\ \r\n");
+    printf("/\\ \\__//\\ \\L\\ \\ \\ \\_\\ \\ \\_/\\ \\L\\ \\/\\ \\/\\ \\/\\ \\L\\ \\/\\__, `\\\r\n");
+    printf("\\ \\____\\ \\____/\\ \\__\\\\ \\__\\ \\____/\\ \\_\\ \\_\\ \\____/\\/\\____/ \r\n");
+    printf(" \\/____/\\/___/  \\/__/ \\/__/\\/___/  \\/_/\\/_/\\/___/  \\/___/  \r\n");
+    printf("                                                          \r\n");
+}
+
+static int dump(unsigned char *buf, long size) // Change type to unsigned char *
 {
     long i;
 
     if (size < 0)
     {
-        co_puts("no data.\n");
+        printf("no data.\n");
         return -1;
     }
     for (i = 0; i < size; i++)
     {
-        co_putxval(buf[i], 2);
         if ((i & 0xf) == 15)
         {
-            co_puts("\n");
+            printf("\n");
         }
         else
         {
             if ((i & 0xf) == 7)
-                co_puts(" ");
-            co_puts(" ");
+                printf(" ");
+            printf(" ");
         }
     }
-    co_puts("\n");
+    printf("\n");
 
     return 0;
 }
@@ -48,29 +69,27 @@ static void wait()
 
 FRESULT read_data_to_entry_point(const char *filename, void **entry_point, size_t read_size)
 {
-    xil_printf("Reading data from %s to entry point %p\r\n", filename, *entry_point);
     FATFS fs;
     FIL fil;
     UINT br;
     FRESULT res;
 
-    // SDカードをマウント
+    // Mount SD card
     if ((res = f_mount(&fs, "", 1)) != FR_OK)
     {
         xil_printf("f_mount failed: %d\n", res);
         return res;
     }
 
-    // ファイルをオープン（読み込みモード）
+    // Open file (read mode)
     if ((res = f_open(&fil, filename, FA_READ)) != FR_OK)
     {
         xil_printf("f_open failed: %d\n", res);
         return res;
     }
 
-    // スタック領域のmemoryを確保
-
-    char *buffer = (char *)malloc(read_size);
+    // Allocate memory for stack area
+    unsigned char *buffer = (unsigned char *)malloc(read_size); // Changed to unsigned char *
 
     size_t total_read = 0;
 
@@ -80,69 +99,48 @@ FRESULT read_data_to_entry_point(const char *filename, void **entry_point, size_
 
         if ((res = f_read(&fil, buffer + total_read, to_read, &br)) != FR_OK)
         {
-            if (res != FR_OK)
-            {
-                xil_printf("Error: %d\n", res);
-                switch (res)
-                {
-                case FR_NO_FILE:
-                    xil_printf("File not found.\n");
-                    break;
-                case FR_NO_PATH:
-                    xil_printf("Path not found.\n");
-                    break;
-                case FR_INVALID_NAME:
-                    xil_printf("Invalid file name.\n");
-                    break;
-                // 他のエラーコードにも対応可能
-                default:
-                    xil_printf("Unknown error.\n");
-                    xil_printf("Error code: %d\n", res);
-                    break;
-                }
-            }
+            xil_printf("Error: %d\n", res);
+            break;
         }
 
         total_read += br;
-
-        xil_printf("Read %d bytes, total read: %d bytes\r\n", br, total_read);
         if (br < to_read)
         {
             break;
         }
     }
 
-    // ファイルをクローズ
+    // Close file
     f_close(&fil);
 
-    // 確保したメモリのアドレスをentry_pointに設定
+    // Set the allocated memory address to entry_point
     *entry_point = buffer;
 
-    return FR_OK; // 正常終了
+    return FR_OK; // Success
 }
 
 FRESULT write_binary_to_sdcard(const char *filename, const uint8_t *data, size_t size)
 {
-    FATFS fs;    // FatFsのファイルシステムオブジェクト
-    FIL fil;     // FatFsのファイルオブジェクト
-    UINT bw;     // 書き込んだバイト数
-    FRESULT res; // 戻り値
+    FATFS fs;
+    FIL fil;
+    UINT bw;
+    FRESULT res;
 
-    // ファイルシステムをマウント
+    // Mount file system
     if ((res = f_mount(&fs, "", 1)) != FR_OK)
     {
         xil_printf("f_mount failed: %d\n", res);
         return res;
     }
 
-    // ファイルをオープン（バイナリ書き込みモード）
+    // Open file (binary write mode)
     if ((res = f_open(&fil, filename, FA_WRITE | FA_CREATE_ALWAYS | FA_OPEN_APPEND)) != FR_OK)
     {
         xil_printf("f_open failed: %d\n", res);
         return res;
     }
 
-    // データを書き込む
+    // Write data
     if ((res = f_write(&fil, data, size, &bw)) != FR_OK)
     {
         xil_printf("f_write failed: %d\n", res);
@@ -150,17 +148,20 @@ FRESULT write_binary_to_sdcard(const char *filename, const uint8_t *data, size_t
         return res;
     }
 
-    // ファイルをクローズ
+    // Close file
     f_close(&fil);
-    return FR_OK; // 正常終了
+    return FR_OK; // Success
 }
+
 int main()
 {
-    const char *filename = "example.bin"; // 書き込むファイル名
+    const char *filename = "example.bin";
 
     static char buf[16];
+    static char last_command[16] = "";
+    int os_loaded = 0;
     size_t data_size = sizeof(os_elf);
-    char *entry_point;
+    unsigned char *entry_point; // Changed to unsigned char *
     void (*f)(void);
 
     init_platform();
@@ -171,7 +172,7 @@ int main()
     xil_printf("Write Binary To SD Card\n\r");
     xil_printf("data_size: %d\n\r", data_size);
 
-    // バイナリデータを書き込む
+    // Write binary data
     res = write_binary_to_sdcard(filename, os_elf, data_size);
     if (res == FR_OK)
     {
@@ -182,62 +183,103 @@ int main()
         xil_printf("Error writing data: %d\n", res);
     }
 
-    xil_printf("Enter characters (Enter exit to stop):\r\n");
+    print_banner();
+    xil_printf("cottonos bootloader\n\r");
+    xil_printf("cottonos bootloader version 0.1\n\r");
+    xil_printf("build date %s %s\n\r", __DATE__, __TIME__);
+    printf("\r\nType commands (Enter exit to stop):\n");
     while (1)
     {
-        co_puts("cottonos_load> ");
-        co_gets(buf);
-
-        if (!co_strcmp(buf, "load"))
+        printf("cottonos_console> ");
+        co_gets((unsigned char *)buf); // Cast to unsigned char *
+        if (!strcmp(buf, "\x1b[A"))    // Up arrow key
         {
-            co_puts("Load Command received.\n");
-            loadbuf = (unsigned char *)&__buffer_start; // __buffer_startのアドレスを取得
+            strcpy(buf, last_command);
+            printf("%s", buf);
+        }
+        if (!strcmp(buf, "load"))
+        {
+            os_loaded = 1;
+            loadbuf = (unsigned char *)&__buffer_start;
+            copy_last_command(buf, last_command);
+            buf_rst(buf, sizeof(buf));
+            printf("\nLoad Command received.\n");
             FRESULT res = read_data_to_entry_point(filename, (void **)&loadbuf, data_size);
             if (res != FR_OK)
             {
-                co_puts("Load error!\n");
+                printf("Load error!\n");
             }
             else
             {
-                co_puts("Load success.\n");
-                co_puts("Load data start.\n");
-                co_puts("Load data end.\n");
+                printf("Load success.\n");
             }
+        }
+        else if (!strcmp(buf, "\0"))
+        {
+            printf("\n");
+            buf_rst(buf, sizeof(buf));
         }
         else if (!strcmp(buf, "dump"))
         {
-            co_puts("Dump Command received.\n");
-            dump(loadbuf, data_size); // エントリーポイントからデータをダンプ
+            copy_last_command(buf, last_command);
+            buf_rst(buf, sizeof(buf));
+            printf("\nDump Command received.\n");
+            dump(loadbuf, data_size); // Dump the data from entry point
         }
         else if (!strcmp(buf, "run"))
         {
-            co_puts("Run Command received.\n");
+            if (!os_loaded)
+            {
+                printf("Please load the binary first.\n");
+                continue;
+            }
+            copy_last_command(buf, last_command);
+            buf_rst(buf, sizeof(buf));
+            printf("\nRun Command received.\n");
 
-            entry_point = co_elf_load(loadbuf); // ELFファイルを読み込む
-
+            entry_point = co_elf_load((unsigned char *)loadbuf); // Cast to unsigned char *
+            printf("entry_point: %p\n", entry_point);
+            if (entry_point == NULL)
+            {
+                printf("Error loading ELF file.\n");
+                continue;
+            }
             f = (void (*)(void))entry_point;
-            f(); /* ここで，ロードしたプログラムに処理を渡す */
-            co_puts("Run success.\n");
-            co_puts("Run data start.\n");
-            co_puts("Run data end.\n");
+            f(); // Pass control to the loaded program
+            printf("Run success.\n");
             wait();
-        }
-        else if (!co_strcmp(buf, "q"))
-        {
-            co_puts("Quit Command received.\n");
             break;
         }
-        else if (!co_strcmp(buf, "exit"))
+        else if (!strcmp(buf, "exit"))
         {
-            co_puts("Exiting ...\n");
+            printf("\nExiting...\n");
+            break;
+        }
+        else if (!strcmp(buf, "help") || !strcmp(buf, "?"))
+        {
+            printf("\nAvailable commands:\n");
+            printf("  load   - Load binary data from SD card\n");
+            printf("  dump   - Dump loaded data\n");
+            printf("  run    - Run loaded program\n");
+            printf("  exit   - Exit the program\n");
+            printf("  help   - Show this help message\n");
+            copy_last_command(buf, last_command);
+            buf_rst(buf, sizeof(buf));
+        }
+        else if (!strcmp(buf, "q"))
+        {
+            printf("\nQuit Command received.\n");
             break;
         }
         else
         {
-            co_puts("unknown.\n");
+            printf("\nunknown command: ");
+            printf("%s", buf);
+            printf("\n");
+            buf_rst(buf, sizeof(buf));
         }
     }
-    xil_printf("Finished receiving characters.\r\n");
+    xil_printf("\nFinished receiving characters.\r\n");
     cleanup_platform();
     return 0;
 }

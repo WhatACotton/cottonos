@@ -29,6 +29,10 @@ build:
 	sleep 5;\
 	${XSCT} ./tcl/bootloader_build.tcl;\
 
+build_bootloader:
+	@echo "Building the bootloader...";\
+	${XSCT} ./tcl/bootloader_build.tcl;\
+	
 run: $(XSA_FILE)
 	@echo "Running the design...";\
 	${XSCT} ./tcl/run.tcl
