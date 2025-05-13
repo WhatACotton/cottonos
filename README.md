@@ -5,6 +5,7 @@ Zynq プロセッサ用組み込み OS「cottonos」
 現在開発中の組み込み OS です。ミニマルな OS を目指しています。
 
 「KOZOS」をベースに参考にしながら、Zynq の環境に合わせた実装を行なっています。
+
 [独自 OS を作ってみよう！](https://kozos.jp/kozos/)
 
 ## 進捗
@@ -35,7 +36,9 @@ Zynq の Stand Alone System においては、その実行環境の構築に FSB
 ## 苦戦した点(そのうちドキュメントを書く予定のもの)
 
 - bsp の設定を`xsct`から行う際、`xilffs`を読み込む設定
-  書きました。[Vitis でライブラリを読み込む方法 - Vivado in CLI](https://my-xilinx-docs.pages.dev/blog/xilffs-in-xsct)
+  書きました。
+
+  [Vitis でライブラリを読み込む方法 - Vivado in CLI](https://my-xilinx-docs.pages.dev/blog/xilffs-in-xsct)
 
 ## `diff.sh`について
 
