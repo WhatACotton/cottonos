@@ -71,14 +71,9 @@ int main()
 
     static char buf[16];
     static char last_command[16] = "";
-    int os_loaded = 0;
-    unsigned char *entry_point; // Changed to unsigned char *
-    void (*f)(void);
 
     init_platform();
     unsigned char *loadbuf = NULL;
-    extern unsigned char __buffer_start;
-
     print_banner();
     xil_printf("cottonos bootloader\n\r");
     xil_printf("cottonos bootloader version 0.1\n\r");
@@ -112,7 +107,6 @@ int main()
         else if (!strcmp(buf, "help") || !strcmp(buf, "?"))
         {
             printf("\nAvailable commands:\n");
-            printf("  load   - Load binary data from SD card\n");
             printf("  dump   - Dump loaded data\n");
             printf("  run    - Run loaded program\n");
             printf("  exit   - Exit the program\n");

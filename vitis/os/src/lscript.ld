@@ -242,11 +242,11 @@ SECTIONS
    __bss_end = .;
 } > ps7_ddr_0
 
-.buffer : {
-   __buffer_start = .;
-   *(.buffer)
-   __buffer_end = .;
-} > ps7_ram_0
+.vector : {
+   __vector_start = .;
+   *(.vector)
+   __vector_end = .;
+} > ps7_ddr_0
 
 _SDA_BASE_ = __sdata_start + ((__sbss_end - __sdata_start) / 2 );
 
