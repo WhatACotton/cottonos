@@ -36,8 +36,8 @@ Zynq の Stand Alone System においては、その実行環境の構築に FSB
 ## 苦戦した点(そのうちドキュメントを書く予定のもの)
 
 - bsp の設定を`xsct`から行う際、`xilffs`を読み込む設定
-  書きました。
 
+  書きました。
   [Vitis でライブラリを読み込む方法 - Vivado in CLI](https://my-xilinx-docs.pages.dev/blog/xilffs-in-xsct)
 
 ## `diff.sh`について
